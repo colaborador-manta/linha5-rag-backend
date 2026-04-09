@@ -68,10 +68,11 @@ async function loadModel() {
     return pipeline;
   }
   modelLoading = true;
-  console.log("[EMBED] Carregando modelo multilingual-e5-small...");
+  console.log("[EMBED] Carregando modelo all-MiniLM-L6-v2 (quantized, ~23MB RAM)...");
   const start = Date.now();
-  const { pipeline: createPipeline } = await import("@xenova/transformers");
-  pipeline = await createPipeline("feature-extraction", "Xenova/multilingual-e5-small", {
+  const { pipeline: createPipeline, env } = await import("@xenova/transformers");
+  env.cacheDir = "/tmp/models";
+  pipeline = await createPipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
     quantized: true,
   });
   modelReady = true;
@@ -80,11 +81,9 @@ async function loadModel() {
   return pipeline;
 }
 
-// multilingual-e5 usa prefixos: "query: " para buscas, "passage: " para documentos
 async function getEmbedding(text, isQuery = false) {
   const pipe = await loadModel();
-  const prefix = isQuery ? "query: " : "passage: ";
-  const output = await pipe((prefix + text).slice(0, 512), { pooling: "mean", normalize: true });
+  const output = await pipe(text.slice(0, 512), { pooling: "mean", normalize: true });
   return Buffer.from(new Float32Array(output.data).buffer);
 }
 
