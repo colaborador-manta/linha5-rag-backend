@@ -73,7 +73,7 @@ async function loadModel(retries = 3) {
       console.log(`[EMBED] Tentativa ${attempt}/${retries}: carregando all-MiniLM-L6-v2...`);
       const start = Date.now();
       const { pipeline: createPipeline, env } = await import("@xenova/transformers");
-      env.cacheDir = "/tmp/hf-models";
+      env.cacheDir = "/app/models";
       env.allowRemoteModels = true;
       pipeline = await createPipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
         quantized: true,

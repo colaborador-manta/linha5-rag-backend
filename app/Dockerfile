@@ -10,6 +10,9 @@ RUN npm install --production
 
 COPY . .
 
+# Pre-download model during build (cached in image, no download at runtime)
+RUN node -e "const{pipeline,env}=require('@xenova/transformers');env.cacheDir='/app/models';pipeline('feature-extraction','Xenova/all-MiniLM-L6-v2',{quantized:true}).then(()=>console.log('Model cached')).catch(e=>console.error(e))"
+
 # Create data directory for SQLite
 RUN mkdir -p /app/data
 
