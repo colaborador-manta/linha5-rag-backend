@@ -1,1 +1,14 @@
-placeholder
+services:
+  - type: web
+    name: linha5-rag-backend
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: DB_PATH
+        value: /app/data/rag.db
+    disk:
+      name: rag-data
+      mountPath: /app/data
+      sizeGB: 1
