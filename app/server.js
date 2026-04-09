@@ -61,24 +61,39 @@ let pipeline = null;
 let modelReady = false;
 let modelLoading = false;
 
-async function loadModel() {
+async function loadModel(retries = 3) {
   if (pipeline) return pipeline;
   if (modelLoading) {
     while (!modelReady) await new Promise(r => setTimeout(r, 500));
     return pipeline;
   }
   modelLoading = true;
-  console.log("[EMBED] Carregando modelo all-MiniLM-L6-v2 (quantized, ~23MB RAM)...");
-  const start = Date.now();
-  const { pipeline: createPipeline, env } = await import("@xenova/transformers");
-  env.cacheDir = "/tmp/models";
-  pipeline = await createPipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
-    quantized: true,
-  });
-  modelReady = true;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`[EMBED] Tentativa ${attempt}/${retries}: carregando all-MiniLM-L6-v2...`);
+      const start = Date.now();
+      const { pipeline: createPipeline, env } = await import("@xenova/transformers");
+      env.cacheDir = "/tmp/hf-models";
+      env.allowRemoteModels = true;
+      pipeline = await createPipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2", {
+        quantized: true,
+        revision: "main",
+      });
+      modelReady = true;
+      modelLoading = false;
+      console.log(`[EMBED] Modelo carregado em ${((Date.now() - start) / 1000).toFixed(1)}s`);
+      return pipeline;
+    } catch (err) {
+      console.error(`[EMBED] Tentativa ${attempt} falhou:`, err.message);
+      if (attempt < retries) {
+        console.log(`[EMBED] Aguardando 5s antes de tentar novamente...`);
+        await new Promise(r => setTimeout(r, 5000));
+      }
+    }
+  }
   modelLoading = false;
-  console.log(`[EMBED] Modelo carregado em ${((Date.now() - start) / 1000).toFixed(1)}s`);
-  return pipeline;
+  console.error("[EMBED] Modelo nao carregou apos todas as tentativas. Busca vetorial indisponivel.");
+  return null;
 }
 
 async function getEmbedding(text, isQuery = false) {
