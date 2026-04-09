@@ -67,7 +67,7 @@ async function loadModel() {
     return pipeline;
   }
   modelLoading = true;
-  console.log("[EMBED] Carregando modelo all-MiniLM-L6-v2...");
+  console.log("[EMBED] Carregando modelo multilingual-e5-small...");
   const start = Date.now();
   const { pipeline: createPipeline } = await import("@xenova/transformers");
   pipeline = await createPipeline("feature-extraction", "Xenova/multilingual-e5-small", {
